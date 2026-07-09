@@ -1,0 +1,91 @@
+---
+title: "Diameter_analysis_Ultem(Stratasys)"
+author: "Rohan"
+date: "2026-07-09"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+## R Markdown
+
+## Filament Diameter Analysis — Ultem (Stratasys)
+
+This document analyzes the diameter variation of a ~51m spool of Ultem filament 
+(Stratasys) measured using a bench test rig..
+
+Two orthogonal Hall-effect diameter sensors (TMAG5273) and a Lika A41H incremental 
+encoder were used to measure filament diameter and length simultaneously. 
+Sensor 1 (0x78) and Sensor 2 (0x22) are positioned 60mm and 120mm downstream 
+of the encoder respectively.
+
+The analysis examines diameter variation between the two sensors, ovality along 
+the spool length, and deviation from the nominal filament diameter of 1.75mm.
+
+```{r import Data}
+files<-list.files(path= "../Logged_data",
+                  pattern = "*.csv",
+                  full.names = TRUE)
+
+data<- files %>% 
+  map(read.csv) %>% 
+  bind_rows()#combining all the rows
+
+
+
+data_r<- data %>% 
+  distinct(length_mm,.keep_all=TRUE) %>%  # removing duplicates or cases where the spool was stationary
+  mutate(
+    pos_sensor_1= length_mm-60, # distance between point of measurements and logged measurement for sensor 1
+    pos_sensor_2=length_mm-120,# distance between point of measurements and logged measurement for sensor 2
+    ovality= abs(diameter1_mm-diameter2_mm),
+    length_m=length_mm/1000,
+                 segment=cut(length_m,breaks=seq(0,52,by=5.2),include.lowest=TRUE))
+    
+```
+
+## Plot 1 — Diameter variation between sensors
+```{r box_plot_diameter_variation}
+ggplot(data_r)+
+  geom_boxplot(aes(x="Sensor_1", y=diameter1_mm,fill= "Sensor_1"))+
+  geom_boxplot(aes(x="Sensor_2",y=diameter2_mm,fill = "Sensor_2"))+
+  labs(title = "Diameter Variation", x="Sensor",y="Diameter(mm)",fill= "Diameter_Sensor")
+```
+
+## Plot 2 — Ovality along the length of the filament measured
+```{r plot_ovality}
+ggplot(data_r, aes(x=segment,y=ovality))+
+  geom_boxplot(fill="steelblue")+
+  geom_smooth()+
+  labs(title = "Ovality along the length",x="Length(m)",y="Ovality(mm)")+
+theme(axis.text.x = element_text(angle=45,hjust=1))
+```
+
+## Plot 2 — Deviation from 1.75mm
+```{r plot_deviation_from_1.75}
+
+data_long<- data_r %>% 
+  mutate(
+    dev_sensor1=diameter1_mm-1.75,
+    dev_sensor2=diameter2_mm-1.75) %>% 
+  pivot_longer(cols=c(dev_sensor1,dev_sensor2),
+               names_to="sensor",
+               values_to = "deviation") %>% 
+  mutate(sensor=recode(sensor,
+                       "dev_sensor1"= "Sensor_1",
+                       "dev_sensor2"="Sensor_2"))
+
+
+ggplot(data_long,aes(x=length_m,y=deviation,colour = sensor))+
+  geom_point(alpha=0.2)+
+  geom_smooth()+
+  geom_hline(yintercept = 0,linetype="dashed",colour="red")+
+  labs(title="Deviation from the diameter of 1.75mm along length of filament",x="Length(m)", y="Deviation(mm)",color= "Deviation from sensors")
+  
+```

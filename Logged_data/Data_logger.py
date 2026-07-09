@@ -5,7 +5,7 @@ import os
 #Configuration
 Port= "COM15"
 Baud= 115200
-Dir= "E:/R/RA_CSU/Ultem_testing"
+Dir= "E:/R/RA_CSU/CSU_filament_bench_rig_with_encoder/Logged_data"
 
 # Create filename with timestamp
 
