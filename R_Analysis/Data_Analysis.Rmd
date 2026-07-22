@@ -109,3 +109,25 @@ ggplot(data_long,aes(x=length_m,y=deviation,colour = sensor))+
   labs(title="Deviation from the diameter of 1.75mm along length of filament",x="Length(m)", y="Deviation(mm)",color= "Deviation from sensors")
   
 ```
+
+## Ranking filaments
+```{r rank}
+# Combine both sensor readings into one vector
+all_diameters <- c(data_r$diameter1_mm, data_r$diameter2_mm)
+Q1  <- quantile(all_diameters, 0.25)
+Q3  <- quantile(all_diameters, 0.75)
+IQR_val <- IQR(all_diameters)
+
+lower_whisker <- Q1 - 1.5 * IQR_val
+upper_whisker <- Q3 + 1.5 * IQR_val
+whisker_range <- upper_whisker - lower_whisker
+mean_ovality<-mean(data_r$ovality)
+cat("Q1:", Q1, "\n")
+cat("Q3:", Q3, "\n")
+cat("IQR:", IQR_val, "\n")
+cat("Lower whisker (Q1 - 1.5×IQR):", lower_whisker, "\n")
+cat("Upper whisker (Q3 + 1.5×IQR):", upper_whisker, "\n")
+cat("Total whisker range:", whisker_range, "\n")
+cat("Mean Ovality:", mean_ovality, "\n")
+```
+
