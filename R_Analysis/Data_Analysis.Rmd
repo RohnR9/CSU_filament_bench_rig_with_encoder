@@ -57,8 +57,28 @@ ggplot(data_r)+
   geom_boxplot(aes(x="Sensor_2",y=diameter2_mm,fill = "Sensor_2"))+
   labs(title = "Diameter Variation", x="Sensor",y="Diameter(mm)",fill= "Diameter_Sensor")
 ```
+## Plot 2 — Diameter variation between sensors (Density plot)
+```{r plot_diameter_density}
+data_density <- data_r %>%
+  pivot_longer(
+    cols = c(diameter1_mm, diameter2_mm),
+    names_to = "sensor",
+    values_to = "diameter"
+  ) %>%
+  mutate(sensor = recode(sensor,
+                         "diameter1_mm" = "Sensor 1",
+                         "diameter2_mm" = "Sensor 2"))
 
-## Plot 2 — Ovality along the length of the filament measured
+ggplot(data_density, aes(x = diameter, fill = sensor)) +
+  geom_density(alpha = 0.5) +
+  geom_vline(xintercept = 1.75, linetype = "dashed", colour = "red") +
+  labs(title = "Diameter Distribution by Sensor",
+       x = "Filament Diameter (mm)",
+       y = "Statistical Density") +
+  xlim(1.65, 1.85)
+```
+
+## Plot 3 — Ovality along the length of the filament measured
 ```{r plot_ovality}
 ggplot(data_r, aes(x=segment,y=ovality))+
   geom_boxplot(fill="steelblue")+
@@ -67,7 +87,7 @@ ggplot(data_r, aes(x=segment,y=ovality))+
 theme(axis.text.x = element_text(angle=45,hjust=1))
 ```
 
-## Plot 2 — Deviation from 1.75mm
+## Plot 4 — Deviation from 1.75mm
 ```{r plot_deviation_from_1.75}
 
 data_long<- data_r %>% 
